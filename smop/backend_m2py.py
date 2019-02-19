@@ -124,7 +124,7 @@ def _backend(self,level=0):
 @extend(node.expr)
 def _backend(self,level=0):
     if self.op in ("!","~"): 
-       return "np.logical_not(%s)" % self.args[0]._backend()
+       return "not %s " % self.args[0]._backend()
 
     if self.op == "&":
        return "np.logical_and(%s)" % self.args._backend()
@@ -145,18 +145,17 @@ def _backend(self,level=0):
     if self.op == "\\":
         return "np.linalg.solve(%s,%s)" % (self.args[0]._backend(),
                                               self.args[1]._backend())
-    if self.op == "::":
+    if self.op == "::" or self.op==":":
         if not self.args:
             return ":"
         elif len(self.args) == 2:
-            return "%s:%s" % (self.args[0]._backend(),
-                              self.args[1]._backend())
+            return "%s:%s" % (self.args[0]._backend(), self.args[1]._backend())
         elif len(self.args) == 3:
             return "%s:%s:%s" % (self.args[0]._backend(),
                                  self.args[2]._backend(),
                                  self.args[1]._backend())
-    if self.op == ":":
-        return ":%s" % self.args._backend()
+    #if self.op == ":":
+    #    return ":%s" % self.args._backend()
     
     if self.op == "end":
         #return '-1'
@@ -234,7 +233,7 @@ def _backend(self,level=0):
             'eye':      ('np.eye('          , ')'     )  , 
             'exp':      ('np.exp('           , ')'     )  , 
             'floor'   : ('int(np.floor(('   , '))'     ) , 
-            'round'   : ('np.rount('     , ')'     )  , 
+            'round'   : ('np.round('     , ')'     )  , 
             'fix'     : ('np.rint('      , ')'     )  , 
             'linspace': ('np.linspace('     , ')'     )  , 
             'mod':      ('np.mod('          , ')'     )  , 
@@ -295,8 +294,10 @@ def _backend(self,level=0):
             'sum':   'np.sum(%s, %s-1)',
             }
     F_3ARGS={
-            'strrep':'%s.replace(%s,%s)'
+            'strrep' :'%s.replace(%s,%s)',
             }
+
+
 
     sFun = self.func_expr._backend()
     sfun = sFun.lower()
@@ -367,7 +368,15 @@ def _backend(self,level=0):
             return 'np.full([%s,%s],np.nan)' % (self.args[0]._backend(), self.args[0]._backend())
         else:
             return 'np.full([%s],np.nan)' % (self.args._backend())
-
+    elif sfun =='fprintf':
+        a1=self.args[0]._backend()
+        if a1[0]=='\'':
+            ar=','.join([s._backend() for s in self.args[1:]])
+            return 'print(%s %% (%s))' % (a1,ar)
+        else:
+            a2=self.args[1]._backend()
+            ar=','.join([s._backend() for s in self.args[2:]])
+            return '%s.write(%s %% (%s))' % (a1,a2,ar)
 
     else:
         #print(sFun)

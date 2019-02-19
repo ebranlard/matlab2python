@@ -342,6 +342,7 @@ class MatlabFile:
                     if ll=='clc':
                         continue
                     add_import(ll,'np.','import numpy as np')
+                    add_import(ll,'np.matlib','import numpy.matlib')
                     add_import(ll,'plt.','import matplotlib.pyplot as plt')
                     add_import(ll,'scipy.special.','import scipy.special')
                     add_import(ll,'__builtin__.','import __builtin__')
@@ -356,7 +357,7 @@ class MatlabFile:
             s+='\n'
         if self.FileType=='script':
             stmp='\n'.join([lc[0]+lc[1] for lc in self.Corpus])
-            stmp=parse_matlab_lines(stmp,backend='m2py')
+            stmp=parse_matlab_lines(stmp,backend)
             if len(stmp)>5 and stmp[0:5]=='\n    ':
                 stmp=stmp.replace('\n    ','\n')
             if stmp[0]=='\n':
@@ -367,7 +368,7 @@ class MatlabFile:
             fName,args_out,args_in = parse_function_def(self.Corpus[0][0])
             stmp='\n'.join([lc[0]+lc[1] for lc in self.Corpus])
             #print(stmp)
-            stmp=parse_matlab_lines(stmp,backend='m2py')
+            stmp=parse_matlab_lines(stmp,backend)
             if stmp[0]=='\n':
                 stmp=stmp[1:] # somehow first character is new line
             if len(args_out)>0:
@@ -402,16 +403,17 @@ class MatlabFile:
                         lMeth.append(lc)
                         # Adding properties initialization
                         for lcp in self.Properties:
-                            if lc[0].find('=')>=0:
-                                lMeth.append((args_out[0]+'.'+lc[0].strip()),lc[1])
+                            if lcp[0].find('=')>=0:
+                                lMeth.append((args_out[0]+'.'+lcp[0].strip(),lcp[1]))
+                                
                     else:
-                        lMeth.append(lc)
+                        lMeth.append((lc[0].replace('@','.'),lc[1]))
                 if not bConstructorFound:
                     raise Exception('Constructor not found in class')
 
                 stmp='\n'.join([lc[0]+lc[1] for lc in lMeth])
                 #print(stmp)
-                stmp=parse_matlab_lines(stmp,backend='m2py')
+                stmp=parse_matlab_lines(stmp,backend)
                 stmp=stmp.replace('\n','\n    ')
                 s+=stmp
         return s
@@ -438,6 +440,7 @@ def matlab2python(filename,opts=None):
     smop.options.filename=filename
     smop.options.no_numbers=not opts.numbers
     smop.options.no_comments=opts.no_comments
+    smop.options.no_resolve=opts.no_resolve
     # Looping through files if a list provided
     if isinstance(filename,list):
         for f in filename:
@@ -446,7 +449,11 @@ def matlab2python(filename,opts=None):
     if not os.path.exists(filename):
         raise Exception('FileNotFound:'+filename)
     MF=MatlabFile(filename=filename)
-    PY=MF.toPython()
+
+    if opts.smop:
+        PY=MF.toPython(backend='smop')
+    else:
+        PY=MF.toPython(backend='m2py')
     if opts.output is None:
         print(PY)
     else:

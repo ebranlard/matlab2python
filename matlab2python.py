@@ -9,6 +9,7 @@ from smop.main import parse_matlab_lines
 def main(argv):
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,description='matlab2python')
+    parser.add_argument("--smop", action="store_true", help=""" omit code generation """)
     #parser.add_argument("-A","--no-analysis", action="store_true", help=""" skip analysis """)
     #parser.add_argument("-B","--no-backend", action="store_true", help=""" omit code generation """)
     parser.add_argument("-C","--no-comments", action="store_true", help=""" discard multiline comments""") 
@@ -20,7 +21,7 @@ def main(argv):
     parser.add_argument("-N", "--numbers", action="store_true", help=""" show line-numbering information """)
     parser.add_argument("-o", "--output", metavar="FILE.py", type=str, help=""" Write the results to FILE.py.  Use -o- to send the results to the standard output.  If not specified explicitly, output file names are derived from input file names by replacing ".m" with ".py".  For example, $ smop FILE1.m FILE2.m FILE3.m generates files FILE1.py FILE2.py and FILE3.py """) 
     #parser.add_argument("-P", "--debug-parser", action="store_true", help=""" enable built-in debugging tools """)
-    #parser.add_argument("-R","--no-resolve", action="store_true", help=""" omit name resolution """)
+    parser.add_argument("-R","--no-resolve", action="store_true", help=""" omit name resolution """)
     #parser.add_argument("-S", "--strict", action="store_true", help=""" stop after first syntax error (by default compiles other .m files) """)
     #parser.add_argument("-T","--testing-mode", action="store_true", help= """ support special "testing" percent-bang comments used to write Octave test suite.  When disabled, behaves like regular comments """)
     #parser.add_argument("-x", "--exclude", metavar="FILE1.m,FILE2.m,FILE3.m", type=str, help=""" comma-separated list of files to ignore """)
