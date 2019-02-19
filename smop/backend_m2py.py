@@ -75,14 +75,14 @@ def _backend(self,level=0):
         return node.number(self.args[0].value +
                            self.args[1].value)._backend()
     else:
-        return "(%s+%s)" % (self.args[0]._backend(),
-                            self.args[1]._backend())
+        return "(%s+%s)" % (self.args[0]._backend(), self.args[1]._backend())
 
 @extend(node.arrayref)
 def _backend(self,level=0):
-    fmt = "%s[%s]"
-    return fmt % (self.func_expr._backend(),
-                       self.args._backend())
+    print(self.args._backend())
+    print(self.args.__class__)
+    fmt = "%s[%s-1]"
+    return fmt % (self.func_expr._backend(), self.args._backend())
 
 @extend(node.break_stmt)
 def _backend(self,level=0):
@@ -96,12 +96,18 @@ def _backend(self,level=0):
 
 @extend(node.cellarray)
 def _backend(self,level=0):
-    return "cellarray([%s])" % self.args._backend()
+    return "np.array([%s])" % self.args._backend()
+#         return "cellarray([%s])" % self.args._backend()
 
 @extend(node.cellarrayref)
 def _backend(self,level=0):
-    return "%s[%s-1]" % (self.func_expr._backend(),
-                       self.args._backend())
+    if self.args._backend()=='1':
+        return "%s[0]" % (self.func_expr._backend())
+    elif self.args._backend()==':':
+        return "%s[:]" % (self.func_expr._backend())
+    else:
+        print(self.args)
+        return "%s[%s-1]" % (self.func_expr._backend(), self.args._backend())
 
 @extend(node.comment_stmt)
 def _backend(self,level=0):
@@ -209,10 +215,19 @@ def _backend(self,level=0):
 
 @extend(node.for_stmt)
 def _backend(self,level=0):
-    fmt = "for %s in %s.reshape(-1):%s"
-    return fmt % (self.ident._backend(),
-                  self.expr._backend(),
-                  self.stmt_list._backend(level+1))
+    s=self.expr._backend()
+    if s.find(':')>0:
+        splits=s.split(':')
+        try:
+            splits[0]=str(int(splits[0])-1)
+        except:
+            splits[0]==splits[0]+'-1'
+        s='np.arange('+','.join(splits)+')'
+        fmt = "for %s in %s:%s"
+        return fmt % (self.ident._backend(), s, self.stmt_list._backend(level+1))
+    else:
+        fmt = "for %s in %s.reshape(-1):%s"
+        return fmt % (self.ident._backend(), self.expr._backend(), self.stmt_list._backend(level+1))
 
 
 @extend(node.func_stmt)
@@ -263,6 +278,7 @@ def _backend(self,level=0):
             'fopen':   ('open('               , ')'     )  , 
             'sort':    ('__builtint__.sorted(' , ')'     )  , 
             'error':   ('raise Exception('     , ')'     )  , 
+            'warning':   ('warnings.warn('     , ')'     )  , 
                }
     F_0ARG ={
             'rand'    :'np.random.rand()',
@@ -271,11 +287,15 @@ def _backend(self,level=0):
     F_1ARG ={
             'cos'      : 'np.cos(%s)',
             'cosd'     : 'np.cos(np.pi/180*%s)',
+            'delete'   : 'os.delete(%s)',
+            'ftell'    : '%s.tell()',
             'isempty'  : 'len(%s)==0',
             'ismatrix' : 'True',
+            'isnan'    : 'np.isnan(%s)',
             'isreal'   : 'True',
             'isscalar' : 'np.isscalar(%s)',
             'length'   : 'len(%s)',
+            'lower'    : '%s.lower()',
 #             'rand'    : 'np.random.randn(%s**2).reshape()',
 #             'randn'   : 'np.random.randn(%s**2).reshape()',
             'roots'   : 'np.roots(%s)',
@@ -286,8 +306,10 @@ def _backend(self,level=0):
             'tan'     : 'np.tan(%s)'
             }
     F_2ARGS={
-            'isa'   :'True',
+            'isa'     :'True',
+            'isequal' :'%s==%s',
             'reshape' :  'np.reshape(%s, tuple(%s), order="F")',
+            'fseek'   :  '%s.seek(%s, %s)',
             'prod':  'np.prod(%s, %s-1)',
             'size'   :'%s.shape[%s-1]',
             'strcmp':'str(%s) == str(%s)',
@@ -377,6 +399,22 @@ def _backend(self,level=0):
             a2=self.args[1]._backend()
             ar=','.join([s._backend() for s in self.args[2:]])
             return '%s.write(%s %% (%s))' % (a1,a2,ar)
+    elif sfun =='exist':
+        if len(self.args)==2:
+            a1=self.args[1]._backend().strip("'").lower()
+            if (a1=='file') or (a1=='dir'):
+                return 'os.path.exist(str(%s))' % (self.args[0]._backend())
+            elif (a1=='var'):
+                return '(%s is not None)' % (self.args[0]._backend())
+                #return '(%s in locals())' % (self.args[0]._backend())
+            elif (a1=='builtin'):
+                return '(%s in globals())' % (self.args[0]._backend())
+            else:
+                return 'exist(%s)' % (self.args._backend())
+        else:
+            return 'exist(%s)' % (self.args._backend())
+    elif sfun =='fileparts':
+        return "os.path.split(%s)[0],os.path.splitext(os.path.split(%s)[1])[0],os.path.splitext(os.path.split(%s)[1])[1]" % (self.args._backend(),self.args._backend(),self.args._backend())
 
     else:
         #print(sFun)
@@ -393,12 +431,22 @@ def _backend(self,level=0):
 
 @extend(node.ident)
 def _backend(self,level=0):
+
+    NODE_RENAME={
+            'true':'True',
+            'false':'False',
+            'nargin':'len(varargin)',
+            'os_path':'os.path', # personnal hack
+            }
     if self.name in reserved:
         self.name += "_"
     if self.init:
-        return "%s = %s" % (self.name,
-                          self.init._backend())
-    return self.name
+        return "%s = %s" % (self.name, self.init._backend())
+    try:
+        return NODE_RENAME[self.name]
+    except:
+        #print(self.name)
+        return self.name
 
 @extend(node.if_stmt)
 def _backend(self,level=0):
@@ -426,26 +474,33 @@ def _backend(self,level=0):
     else:
         t = ''
 
-    s = ''
     #if self.args.__class__ is node.funcall:
     #    self.args.nargout = self.nargout
     if self.ret.__class__ is node.expr and self.ret.op == "." :
         try:
             if self.ret.args[1].op == 'parens':
-                s += "setattr(%s,%s,%s)" % (self.ret.args[0]._backend(),
+                s = "setattr(%s,%s,%s)" % (self.ret.args[0]._backend(),
                                            self.ret.args[1].args[0]._backend(),
                                            self.args._backend())
         except:
-            s += "%s%s = copy(%s)" % (self.ret.args[0]._backend(),
-                                       self.ret.args[1]._backend(),
-                                       self.args._backend())
-    elif (self.ret.__class__ is node.ident and
-        self.args.__class__ is node.ident):
-        s += "%s=copy(%s)" % (self.ret._backend(),
-                              self.args._backend())
+            lhs = "%s%s" % (self.ret.args[0]._backend(), self.ret.args[1]._backend())
+            rhs = "%s" % (self.args._backend())
+            s=lhs+' = '+rhs
+            #s += "%s%s = copy2(%s)" % (self.ret.args[0]._backend(), self.ret.args[1]._backend(), self.args._backend())
+
+    elif (self.ret.__class__ is node.ident and self.args.__class__ is node.ident):
+        lhs = "%s" % (self.ret._backend())
+        rhs = "%s" % (self.args._backend())
+        lhs = lhs.replace('(','[').replace(')',']') # cannot have function call
+        lhs = lhs.replace('end[]','end()') # oops
+        s=lhs+' = '+rhs
+        #s += "%s=coyp(%s)" % (self.ret._backend(), self.args._backend())
     else:
-        s += "%s=%s" % (self.ret._backend(), 
-                       self.args._backend())
+        lhs = "%s" % (self.ret._backend())
+        rhs = "%s" % (self.args._backend())
+        lhs = lhs.replace('(','[').replace(')',']') # cannot have function call
+        lhs = lhs.replace('end[]','end()') # oops
+        s=lhs+' = '+rhs
     return s+t
 
 @extend(node.logical)

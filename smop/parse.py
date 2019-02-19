@@ -65,7 +65,7 @@ def p_end_function(p):
     """
     p[0] = p[1]
     p[0].append(node.return_stmt(ret=ret_expr))
-    p[0].append(node.comment_stmt("\nif __name__ == '__main__':\n    pass"))
+    #p[0].append(node.comment_stmt("\nif __name__ == '__main__':\n    pass"))
 
 
 @exceptions
@@ -364,12 +364,10 @@ def p_expr2(p):
                 # [A1(B1) A2(B2) ...] = F(X)
                 p[3].nargout = len(p[1].args[0])
     elif p[2] == "*":
-        p[0] = node.funcall(
-            func_expr=node.ident("dot"), args=node.expr_list([p[1], p[3]]))
+        #p[0] = node.funcall(func_expr=node.ident("dot"), args=node.expr_list([p[1], p[3]]))
+        p[0] = node.expr(op=p[2], args=node.expr_list([p[1], p[3]]))
     elif p[2] == ".*":
-        p[0] = node.funcall(
-            func_expr=node.ident("multiply"),
-            args=node.expr_list([p[1], p[3]]))
+        p[0] = node.funcall( func_expr=node.ident("multiply"), args=node.expr_list([p[1], p[3]]))
 
 #    elif p[2] == "." and isinstance(p[3],node.expr) and p[3].op=="parens":
 #        p[0] = node.getfield(p[1],p[3].args[0])

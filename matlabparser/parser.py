@@ -334,6 +334,25 @@ class MatlabFile:
                 if ll.find(sfind)>=0:
                     if sadd not in IMPORTS:
                         IMPORTS.append(sadd)
+            def get_indent(s):
+                sind=''
+                for c in s:
+                    if c==' ':
+                        sind+=' '
+                    else:
+                        break
+                return sind
+            def parse_fclose(l):
+                ps=l.find('fclose')
+                if ps>0:
+                    pe=l.find(')')
+                    sind=get_indent(l)
+                    fid=l[ps+7:pe]
+                    l=sind+fid+'.close()'+l[pe+1:]
+                return l
+#             def parse_LHS(l):
+#                 ps=l.find('=')
+
 
             lines=[]
             if backend=='m2py':
@@ -343,9 +362,12 @@ class MatlabFile:
                         continue
                     add_import(ll,'np.','import numpy as np')
                     add_import(ll,'np.matlib','import numpy.matlib')
+                    add_import(ll,'os.','import os')
+                    add_import(ll,'warnings.','import warnings')
                     add_import(ll,'plt.','import matplotlib.pyplot as plt')
                     add_import(ll,'scipy.special.','import scipy.special')
                     add_import(ll,'__builtin__.','import __builtin__')
+                    l=parse_fclose(l)
                     lines.append(l)
                 return '\n'.join(IMPORTS+lines)
             else:
@@ -377,12 +399,15 @@ class MatlabFile:
 
         elif self.FileType=='class':
             fName,children= parse_class_def(self.Corpus[0][0])
+            children = [c for c in children if c!='handle']
             if len(children)>=0:
-                s+='\n'+'class '+fName.strip()+'('+','.join(children)+')'
+                for c in children:
+                    s+='from '+c +' import '+c+'\n'
+                s+='\n'+'class '+fName.strip()+'('+','.join(children)+'):\n'
             else:
-                s+='\n'+'class '+fName.strip()+'()'
+                s+='\n'+'class '+fName.strip()+'():\n'
 
-            s+='\n'.join([lc[0]+lc[1].replace('%','#') for lc in self.Corpus[1:]])
+            s+=''.join(['    '+lc[0]+lc[1].replace('%','#')+'\n' for lc in self.Corpus[1:]])
             if len(self.Methods)>0:
                 #s+='\nmethods\n'
                 #s+='\n'.join(['    '+lc[0]+lc[1] for lc in self.Methods])
@@ -391,7 +416,7 @@ class MatlabFile:
                 # we look for the constructor
                 bConstructorFound=False
                 for lc in self.Methods:
-                    if lc[0].find(fName)>=0:
+                    if lc[0].find(fName)>=0 and lc[0].lower().find('function')==0:
                         bConstructorFound=True
                         fName,args_out,args_in = parse_function_def(lc[0])
                         #print('>>>>>>',lc[0])
@@ -407,7 +432,10 @@ class MatlabFile:
                                 lMeth.append((args_out[0]+'.'+lcp[0].strip(),lcp[1]))
                                 
                     else:
-                        lMeth.append((lc[0].replace('@','.'),lc[1]))
+                        if lc[0].find('@')>=0:
+                            lMeth.append(('','% TODO TODO TODO MATLAB2PYTHON: '+lc[0]+lc[1]))
+                        else:
+                            lMeth.append(lc)
                 if not bConstructorFound:
                     raise Exception('Constructor not found in class')
 
@@ -416,6 +444,7 @@ class MatlabFile:
                 stmp=parse_matlab_lines(stmp,backend)
                 stmp=stmp.replace('\n','\n    ')
                 s+=stmp
+                s=postpro(s)
         return s
 
 
