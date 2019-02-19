@@ -6,11 +6,12 @@ A python script to convert matlab files or lines of matlab code to python. This 
 This implementation relies heavily on the project [SMOP](http://github.com/victorlei/smop/) by Victor Leikehman. 
 The current implementation wraps around SMOP, with the following differences: 
 
-- It attempts to returns code that does not rely on an external module (`libsmop`), but only usual python modules such as `numpy`.
+- It attempts to produce code that does not rely on `libsmop`, but only on usual python modules such as `numpy`.
+- It uses typical shortcuts such as `np` instead of `numpy`.
 - It attemps to reindex arrays and loops, starting from 0 instead of 1.
-- It doesn't use the external classes `matlabarray` and `cellarray`
-- Consequently, the resulting code is "less safe" but maybe slightly closer to what a user would write.
+- It doesn't use the external classes `matlabarray` and `cellarray` from `libsmop`
 - Basic support for Matlab classes is added. The properties declared in the body of the class are initialized in the constructor.
+- As a consequenc of all the above, the resulting code is "less safe" but maybe slightly closer to what a user would write.
 
 This implementation is made straightforward, since it basically use another backend script than the one used by SMOP, here called `smop\backend_m2py.py`. 
 Some function replacements were added directly there. 
@@ -29,7 +30,7 @@ python -m pip install --user -r requirements.txt
 The main script at the root of the repository is executable and has a couple of command line flags (some of them taken directly from SMOP). 
 To convert the file `file.m` to `file.py`, simply type:
 ```bash
-python file.m -o file.py
+python matlab2python.py file.m -o file.py
 ```
 The python package can also be used directly to perform conversion of files or lines of code.
 
