@@ -4,6 +4,8 @@
 import sys
 import re
 import ply.lex as lex
+import warnings
+warnings.simplefilter(action='ignore',category=FutureWarning)
 from ply.lex import TOKEN
 from . import options
 

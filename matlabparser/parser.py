@@ -10,6 +10,8 @@ Difficulties
 """
 import os
 import unittest
+import smop
+from smop.main import parse_matlab_lines
 
 from . import parsing_tools as PT
 
@@ -102,7 +104,7 @@ def parse_function_def(stmt):
     ieq=stmt.find('=')
     if ieq>0:
         sArgs_out=stmt[:ieq]
-        sArgs_out=sArgs_out.replace('[','').replace(']','').replace(',','')
+        sArgs_out=sArgs_out.replace('[','').replace(']','').replace(',',' ')
         args_out=[a.strip() for a in sArgs_out.split() if len(a)>0]
     # Declaration
     ieq = max(ieq+1,0)
@@ -150,13 +152,7 @@ def merge_lines(LC):
         i+=1
     return LC_new
 
-
-
 class TestParser(unittest.TestCase):
-
-    def assertEqual(self, first, second, msg=None):
-        #print('>',first,'<',' >',second,'<')
-        super(TestParser, self).assertEqual(first, second, msg)
 
     def test_names(self):
         #self.assertEqual(extract_function_name('function y = f(a,b)'),'f'))
@@ -167,6 +163,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(parse_function_def('function foo() '),('foo',[],[]))
         self.assertEqual(parse_function_def('function foo ( ); '),('foo',[],[]))
         self.assertEqual(parse_function_def('function [a b] = f(c)'),('f',['a','b'],['c']))
+        self.assertEqual(parse_function_def('function [a,b] = f(c)'),('f',['a','b'],['c']))
         self.assertEqual(parse_class_def('classdef y<h')    ,('y',['h']))
         self.assertEqual(parse_class_def('classdef y < h ;'),('y',['h']))
         self.assertEqual(parse_class_def('classdef y')      ,('y',[]))
@@ -230,7 +227,10 @@ class MatlabFile:
             with open(filename,'r') as f:
                 self.raw_lines=f.readlines()
         elif lines is not None:
-            self.raw_lines=lines
+            if isinstance(lines,list):
+                self.raw_lines=lines
+            else:
+                self.raw_lines=lines.split('\n')
         else:
             raise Exception('Provide filename or lines')
         self.read()
@@ -240,12 +240,11 @@ class MatlabFile:
         lines_comment=[]
         for l in self.raw_lines:
             lc=separate_comment(l.strip())
-            #print(parse_matlab_lines(lc[0]+'\n'))
             lines_comment.append(lc)
         # --- Merging lines with explicit line continuation \
         lines_comment = merge_lines(lines_comment)
         #for lc in lines_comment:
-        #    print(lc[0], lc[1])
+        #    print('>',lc[0])
 
         # --- detecting main file type and splitting into corpus and header
         self.Header=[]
@@ -268,7 +267,7 @@ class MatlabFile:
                         self.Corpus.append(lc)
             else:
                 self.Corpus.append(lc)
-        # --- For classes we detect properies and methods
+        # --- For classes we detect properties and methods
         def remove_last_end(lc):
             if len(lc)>0:
                 bEndFound=False
@@ -281,13 +280,13 @@ class MatlabFile:
                     i-=1
             return lc
         if self.FileType=='class':
-            print('>>>> CLASS PARSING')
             bIsInProp=False
             bIsInMeth=False
             lProp=[]
             lMeth=[]
-            self.Corpus = remove_last_end(self.Corpus) # removing end class
-            for lc in self.Corpus[1:]:
+            OldCorpus = remove_last_end(self.Corpus) # removing end class
+            self.Corpus=[]
+            for lc in OldCorpus:
                 stmt=lc[0].strip().lower()
                 if stmt.find('properties')==0:
                     bIsInProp=True
@@ -302,40 +301,166 @@ class MatlabFile:
                 elif bIsInMeth:
                     lMeth.append(lc)
                 else:
-                    pass
+                    self.Corpus.append(lc)
                     #self.Header.append(lc)
             lMeth = remove_last_end(lMeth)
             lProp = remove_last_end(lProp)
             self.Methods=[lc for lc in lMeth if ((len(lc[0].strip())>0) or ( len(lc[1].strip())>0))]
-            for lc in self.Methods:
-                print('m: ',lc[0])
             self.Properties=[lc for lc in lProp if ((len(lc[0].strip())>0) or ( len(lc[1].strip())>0))]
-            for lc in self.Properties:
-                print('p:',lc[0],lc[1])
-            for lc in self.Header:
-                print('h:',lc[0])
 
-        def toString(self):
-            pass
+    def toString(self):
+        s=''
+        s+='\n'.join([lc[0]+lc[1] for lc in self.Header])
+        if len(self.Header)>0:
+            s+='\n'
+        s+='\n'.join([lc[0]+lc[1] for lc in self.Corpus])
+        if self.FileType=='class':
+            if len(self.Properties)>0:
+                s+='\nproperties\n'
+                s+='\n'.join(['    '+lc[0]+lc[1] for lc in self.Properties])
+                s+='\nend\n'
+            if len(self.Methods)>0:
+                s+='\nmethods\n'
+                s+='\n'.join(['    '+lc[0]+lc[1] for lc in self.Methods])
+                s+='\nend\n'
+            s+='end\n'
+        return s
+
+            
+    def toPython(self,backend='m2py'):
+        def postpro(s):
+            IMPORTS=[]
+            def add_import(ll,sfind,sadd):
+                if ll.find(sfind)>=0:
+                    if sadd not in IMPORTS:
+                        IMPORTS.append(sadd)
+
+            lines=[]
+            if backend=='m2py':
+                for l in s.split('\n'):
+                    ll=l.lower().strip()
+                    if ll=='clc':
+                        continue
+                    add_import(ll,'np.','import numpy as np')
+                    add_import(ll,'plt.','import matplotlib.pyplot as plt')
+                    add_import(ll,'scipy.special.','import scipy.special')
+                    add_import(ll,'__builtin__.','import __builtin__')
+                    lines.append(l)
+                return '\n'.join(IMPORTS+lines)
+            else:
+                return s
+
+        s=''
+        s+='\n'.join([lc[0]+lc[1].replace('%','#') for lc in self.Header])
+        if len(self.Header)>0:
+            s+='\n'
+        if self.FileType=='script':
+            stmp='\n'.join([lc[0]+lc[1] for lc in self.Corpus])
+            stmp=parse_matlab_lines(stmp,backend='m2py')
+            if len(stmp)>5 and stmp[0:5]=='\n    ':
+                stmp=stmp.replace('\n    ','\n')
+            if stmp[0]=='\n':
+                stmp=stmp[1:] # somehow first character is new line
+            s+=postpro(stmp)
+
+        elif self.FileType=='function':
+            fName,args_out,args_in = parse_function_def(self.Corpus[0][0])
+            stmp='\n'.join([lc[0]+lc[1] for lc in self.Corpus])
+            #print(stmp)
+            stmp=parse_matlab_lines(stmp,backend='m2py')
+            if stmp[0]=='\n':
+                stmp=stmp[1:] # somehow first character is new line
+            if len(args_out)>0:
+                stmp+='\n    return '+','.join(args_out)
+            s+=postpro(stmp)
+
+        elif self.FileType=='class':
+            fName,children= parse_class_def(self.Corpus[0][0])
+            if len(children)>=0:
+                s+='\n'+'class '+fName.strip()+'('+','.join(children)+')'
+            else:
+                s+='\n'+'class '+fName.strip()+'()'
+
+            s+='\n'.join([lc[0]+lc[1].replace('%','#') for lc in self.Corpus[1:]])
+            if len(self.Methods)>0:
+                #s+='\nmethods\n'
+                #s+='\n'.join(['    '+lc[0]+lc[1] for lc in self.Methods])
+                #s+='\nend\n'
+                lMeth=[]
+                # we look for the constructor
+                bConstructorFound=False
+                for lc in self.Methods:
+                    if lc[0].find(fName)>=0:
+                        bConstructorFound=True
+                        fName,args_out,args_in = parse_function_def(lc[0])
+                        #print('>>>>>>',lc[0])
+                        if len(args_out)!=1:
+                            raise Exception('Class constructor should return only one value')
+                        #print('>>>>>>',fName,args_out,args_in)
+                        lc=('function __init__('+','.join(args_out+args_in)+')',lc[1])
+                        #print('>>>>>>',lc[0])
+                        lMeth.append(lc)
+                        # Adding properties initialization
+                        for lcp in self.Properties:
+                            if lc[0].find('=')>=0:
+                                lMeth.append((args_out[0]+'.'+lc[0].strip()),lc[1])
+                    else:
+                        lMeth.append(lc)
+                if not bConstructorFound:
+                    raise Exception('Constructor not found in class')
+
+                stmp='\n'.join([lc[0]+lc[1] for lc in lMeth])
+                #print(stmp)
+                stmp=parse_matlab_lines(stmp,backend='m2py')
+                stmp=stmp.replace('\n','\n    ')
+                s+=stmp
+        return s
 
 
 
 
 def parse(filename):
-    from smop.main import parse_matlab_lines
     # Looping through files if a list provided
     if isinstance(filename,list):
         for f in filename:
             parse(f)
         return
     # Parsing
-    print('Parsing: {}'.format(filename))
+    #print('Parsing: {}'.format(filename))
     if not os.path.exists(filename):
         raise Exception('FileNotFound:'+filename)
-
     MF=MatlabFile(filename=filename)
     #print(lines)
 
+def matlab2python(filename,opts=None):
+    # ---Passing options to smop module
+    #options.debug=opts.debug
+    smop.options.filename=filename
+    smop.options.no_numbers=not opts.numbers
+    smop.options.no_comments=opts.no_comments
+    # Looping through files if a list provided
+    if isinstance(filename,list):
+        for f in filename:
+            matlab2python(f,opts)
+        return
+    if not os.path.exists(filename):
+        raise Exception('FileNotFound:'+filename)
+    MF=MatlabFile(filename=filename)
+    PY=MF.toPython()
+    if opts.output is None:
+        print(PY)
+    else:
+        with open(opts.output,'w') as f:
+            f.write(PY)
 
+#     if opts.output:
+    #print(lines)
+
+def matlablines2python(lines):
+    MF=MatlabFile(lines=lines)
+    return MF.toPython()
 
     
+
+
+

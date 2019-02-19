@@ -10,7 +10,7 @@ else
 endif
 
 all:
-	python $(MAIN) _tests/test_function1.m 
+	python $(MAIN) _tests/test_class1.m 
 
 install:
 	python setup.py install

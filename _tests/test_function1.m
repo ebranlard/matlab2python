@@ -1,47 +1,46 @@
-classdef FileCl < handle;
-%% Documentation
-properties
-    % Public
-    bReadOnly = false ;
-    filepath;
-    filename;
-end
-properties(SetAccess = private, Hidden = true)
-    fid ; 
-    line_number;
-    pos_previous_line;
-    current_filename;
-    bVerbose=false;
-end
-properties(Abstract = true, Hidden=true);
-    typical_extension; % need to be initialized by sub class
-end
-% --------------------------------------------------------------------------------
-methods
-    function o=FileCl(varargin)
-       %    First argument is a filename
-        if nargin==0
-            o.setFilepath('');
-        elseif nargin>=1
-            % First argument is filename
-            o.setFilepath(varargin{1});
-            %o.read();
-        else
-           % fine, it's up to our children to handle the remaining arguments
-        end
-    end
+% doc
+function [y,z] = f(x)
+clear all; close all; clc;
+% Builtins
+disp(A)
+error('not found %s', s)
+fid=fopen('filename','w')
+fclose(fid)
+% Numpy
+y=abs(x)    
+y=all(x)
+y=any(x)
+y=ndims(x)
+y=numel(x)
+f=nan(1,2)
+A=zeros(3,4)
+v=linspace(0,1,100)
+B=reshape(A',3,4)
+% Scipy
+y=gamma(x)
+% Plot
+figure()
+plot(1,1)
+xlim([0,1])
+% Misc
+z= callme()
+z= callme(x)
+% Strings
+s=strrep('aaaa','a','b')
+sum(x)
+sum(x,1)
+strcmp('a','b')
 
-    % --------------------------------------------------------------------------------{
-    function read(o,file_name)
-        % After reading, the oect is set to readonly, and the filepath matches the one that has been read
-        if nargin==2
-            o.setFilepath(file_name);
-        end
-        % --- Check of extension
-        o.check_extension();
-        % --- Changing  "current_filename", useful for error reporting
-        o.current_filename=o.filepath;
-    end
-end % methods
+isreal(x)
+isa(x)
+x(end-1) = 1
+x(end) = 1
 
-end % class
+[a,b]= size(M)
+a= size(M,1)
+b= size(M,2)
+
+[z,~]= callyou(z)
+
+y =x+z
+
