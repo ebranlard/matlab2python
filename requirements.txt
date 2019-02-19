@@ -1,3 +1,8 @@
 numpy  
-matplotlib 
+ply
+networkx
 future
+matplotlib 
+pytest
+scipy
+
