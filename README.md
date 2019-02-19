@@ -49,12 +49,12 @@ These conversions are for instance:
 - etc
 
 As mentioned above, [SMOP](http://github.com/victorlei/smop/) does a great job to produce safe code.
-Yet, neither `SMOP` nor `matlab2python` will generate code that is production ready (it might in some cases). 
+Yet, neither `SMOP` nor `matlab2python` will generate code that is production-ready (it might in some cases). 
 Most of the time, the user will have to go through the code and perform adjustements and some rewritting. 
-In fact, `matlab2python` will likely be slightly worse in producing a code that works out of the box.
+In fact, `matlab2python` will likely be slightly worse than SMOP in producing a code that works out of the box.
 But at the end, the code produced by `matlab2python` should require less refactoring and help the user in its conversion.
 As mentioned by the author of SMOP, it is difficult not to hide the matlab flavor from the code that is generated and it's also difficult to fully convert the code without introducing wrapped classes such that `matlabarray`. The implemenation of `matlab2python` attempts to do that, at the price of less safety.
 
-I've written this wrapper script to fullfill my own needs. I was ready to convert manually a bunch of matlab scripts, but I thought I could have a script to automate some of the simple conversions and formatting. I started a quick and dirty implementation before discovering `SMOP`. At the end, I merged my quick and dirty implemenation with the more powerful parsing framework used by SMOP. Hopefully this can be useful to someone else! If so, feel free to contribute. 
+I've written this wrapper script for my own needs. I was ready to convert manually a bunch of matlab scripts, but I thought I could have a script to automate some of the simple conversions and formatting. I started a quick and dirty implementation before discovering `SMOP`. At the end, I merged my quick and dirty implemenation with the more powerful parsing framework used by SMOP. Hopefully this can be useful to someone else! If so, feel free to contribute. 
 
 
