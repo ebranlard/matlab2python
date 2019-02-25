@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ebranlard/matalb2python.svg?branch=master)](https://travis-ci.org/ebranlard/matlab2python)
+[![Build Status](https://travis-ci.org/ebranlard/matlab2python.svg?branch=master)](https://travis-ci.org/ebranlard/matlab2python)
 
 # matlab2python
 
