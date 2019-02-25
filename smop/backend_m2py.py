@@ -155,13 +155,13 @@ def _backend(self,level=0):
         if not self.args:
             return ":"
         elif len(self.args) == 2:
-            return "%s:%s" % (self.args[0]._backend(), self.args[1]._backend())
+            return "np.arange(%s,%s+1)" % (self.args[0]._backend(), self.args[1]._backend())
         elif len(self.args) == 3:
-            return "%s:%s:%s" % (self.args[0]._backend(),
-                                 self.args[2]._backend(),
-                                 self.args[1]._backend())
+            return "np.arange(%s,%s+%s,%s)" % (self.args[0]._backend(),
+                                 self.args[1]._backend(),self.args[2]._backend(),
+                                 self.args[2]._backend())
     #if self.op == ":":
-    #    return ":%s" % self.args._backend()
+    #    return "arange(%s)" % self.args._backend()
     
     if self.op == "end":
         #return '-1'
@@ -247,7 +247,8 @@ def _backend(self,level=0):
             'dot':      ('np.dot('           , ')'     )  , 
             'eye':      ('np.eye('          , ')'     )  , 
             'exp':      ('np.exp('           , ')'     )  , 
-            'floor'   : ('int(np.floor(('   , '))'     ) , 
+            'floor'   : ('int(np.floor('   , '))'     ) , 
+            'fft'     : ('np.fft.rfft('   , ')'     ) ,  # dangerous
             'round'   : ('np.round('     , ')'     )  , 
             'fix'     : ('np.rint('      , ')'     )  , 
             'linspace': ('np.linspace('     , ')'     )  , 

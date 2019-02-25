@@ -9,7 +9,7 @@ from smop.main import parse_matlab_lines
 def main(argv):
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,description='matlab2python')
-    parser.add_argument("--smop", action="store_true", help=""" omit code generation """)
+    parser.add_argument("--smop", action="store_true", help=""" use smop backend """)
     #parser.add_argument("-A","--no-analysis", action="store_true", help=""" skip analysis """)
     #parser.add_argument("-B","--no-backend", action="store_true", help=""" omit code generation """)
     parser.add_argument("-C","--no-comments", action="store_true", help=""" discard multiline comments""") 

@@ -100,7 +100,7 @@ def _backend(self,level=0):
 
 @extend(node.cellarrayref)
 def _backend(self,level=0):
-    return "%s[%s-1]" % (self.func_expr._backend(),
+    return "%s[%s]" % (self.func_expr._backend(),
                        self.args._backend())
 
 @extend(node.comment_stmt)
@@ -156,7 +156,7 @@ def _backend(self,level=0):
                                  self.args[2]._backend(),
                                  self.args[1]._backend())
     if self.op == ":":
-        return ":%s" % self.args._backend()
+        return "arange(%s)" % self.args._backend()
     
     if self.op == "end":
 #        if self.args:
@@ -217,17 +217,17 @@ def _backend(self,level=0):
 
 @extend(node.func_stmt)
 def _backend(self,level=0):
-#     self.args.append(node.ident("*args"))
-#     self.args.append(node.ident("**kwargs"))
-#     varargin = %s.varargin
-#     nargin = %s.nargin
+    self.args.append(node.ident("*args"))
+    self.args.append(node.ident("**kwargs"))
     s = """
 @function
 def %s(%s):
+    varargin = %s.varargin
+    nargin = %s.nargin
 """ % (self.ident._backend(),
-       self.args._backend())
-#        self.ident._backend(),
-#        self.ident._backend())
+       self.args._backend(),
+       self.ident._backend(),
+       self.ident._backend())
     return s
 
 @extend(node.funcall)
@@ -324,7 +324,7 @@ def _backend(self,level=0):
         return " + ".join(a._backend() for a in self.args)
     else:
         #import pdb; pdb.set_trace()
-        return "np.array([%s])" % self.args[0]._backend()
+        return "concat([%s])" % self.args[0]._backend()
 
 @extend(node.null_stmt)
 def _backend(self,level=0):

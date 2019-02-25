@@ -9,27 +9,6 @@ from matlabparser.parser import TestParser
 from matlabparser.parsing_tools import TestParsingTools
 from matlabparser.parser import matlablines2python
 
-class TestCommon(unittest.TestCase):
-    pass
-   # def test_common(self):
-   #     print('hi')
-    #def assertEqual(self, first, second, msg=None):
-    #    #print('>',first,'<',' >',second,'<')
-    #    super(TestCommon, self).assertEqual(first, second, msg)
-    #
-    #def test_unit(self):
-    #    self.assertEqual(unit   ('speed [m/s]'),'m/s'  )
-    #    self.assertEqual(unit   ('speed [m/s' ),'m/s'  ) # ...
-    #    self.assertEqual(no_unit('speed [m/s]'),'speed')
-    #
-    #def test_ellude(self):
-    #    self.assertListEqual(ellude_common(['AAA','ABA']),['A','B'])
-
-    #    # unit test for #25
-    #    S=ellude_common(['A.txt','A_.txt'])
-    #    if any([len(s)<=1 for s in S]):
-    #        raise Exception('[FAIL] ellude common with underscore difference, Bug #25')
-
 # --------------------------------------------------------------------------------}
 # ---  
 # --------------------------------------------------------------------------------{
@@ -38,7 +17,9 @@ class TestMatlab2Python(unittest.TestCase):
     def ExecAsserX(self, Lines, Expected, msg=None):
         #print('>',first,'<',' >',second,'<')
         A=matlablines2python(Lines)
-        print(A)
+        #print('')
+        #print('Matlab:',Lines)
+        #print('Python:',A)
         d={}
         exec(A,d)
         np.testing.assert_array_equal(d['x'], Expected)
@@ -51,9 +32,16 @@ class TestMatlab2Python(unittest.TestCase):
         # simple
         self.ExecAsserX("""x=1""",1)
         self.ExecAsserX("""x=ceil(0.5)""",1)
+        self.ExecAsserX("""x=floor(10/2)""",5)
+        self.ExecAsserX("""x=floor(11/2)""",5)
+        self.ExecAsserX("""x=floor(12/2)""",6)
         # linspace
         self.ExecAsserX("""x=linspace(0,1,2)""",[0,1])
         self.ExecAsserX("""x=linspace(0,1,3)""",[0,0.5,1])
+        self.ExecAsserX("""x=0:0.5:1""",[0,0.5,1])
+        self.ExecAsserX("""x=0:3""",[0,1,2,3])
+        self.ExecAsserX("""x=3:-1:1""",[3,2,1])
+        self.ExecAsserX("""x=1:-0.5:0""",[1,0.5,0])
         #zeros, ones, nan
         self.ExecAsserX("""x=zeros(3,2)""",np.zeros((3,2)))
         self.ExecAsserX("""x=ones(3)"""   ,np.ones((3,3)))
@@ -67,8 +55,8 @@ class TestMatlab2Python(unittest.TestCase):
         self.ExecAsserX("""x=sum(eye(1,2),2)""",1)
         self.ExecAsserX("""x=sum(eye(1,2),1)""",[1,0])
 
-        print('>>>>>>>>>>')
-        print('>>>>>>>>>>')
+        #print('>>>>>>>>>>')
+        #print('>>>>>>>>>>')
         #self.Eval(""" """)
  
 if __name__ == '__main__':
