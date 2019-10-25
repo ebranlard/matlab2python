@@ -18,8 +18,10 @@ instances, which possibly define the variable.
 It is used in if_stmt, for_stmt, and while_stmt.
 """
 
+from __future__ import print_function
 import copy
 import networkx as nx
+
 
 from . import node
 from . node import extend
@@ -49,9 +51,17 @@ def resolve(t, symtab=None, fp=None, func_name=None):
         symtab = {}
     do_resolve(t,symtab)
     G = as_networkx(t)
+    try:
+        # --- Network version 1.11
+        NODES=G.node  # NOTE: order or try except is important!
+    except:
+        # --- Network version 2.0
+        NODES=G.nodes
+
+    # --- Nework version 1.11
     for n in G.nodes():
-        #print(n.__class__.__name__)
-        u = G.node[n]["ident"]
+        #print(node.__class__.__name__)
+        u = NODES[n]["ident"]
         if u.props:
             pass
         elif G.out_edges(n) and G.in_edges(n):
@@ -63,7 +73,7 @@ def resolve(t, symtab=None, fp=None, func_name=None):
             u.props = "R" # ref
         else:
             u.props = "F" # ???
-        G.node[n]["label"] = "%s\\n%s" % (n, u.props)
+        NODES[n]["label"] = "%s\\n%s" % (n, u.props)
     return G
 
 def do_resolve(t,symtab):
