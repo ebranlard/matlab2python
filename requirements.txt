@@ -1,6 +1,6 @@
 numpy  
 ply
-networkx
+networkx==1.11
 future
 matplotlib 
 pytest
