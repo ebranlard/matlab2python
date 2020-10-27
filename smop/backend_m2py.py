@@ -81,7 +81,7 @@ def _backend(self,level=0):
 def _backend(self,level=0):
     print(self.args._backend())
     print(self.args.__class__)
-    fmt = "%s[%s-1]"
+    fmt = "%s[%s]"
     return fmt % (self.func_expr._backend(), self.args._backend())
 
 @extend(node.break_stmt)
@@ -107,7 +107,7 @@ def _backend(self,level=0):
         return "%s[:]" % (self.func_expr._backend())
     else:
         print(self.args)
-        return "%s[%s-1]" % (self.func_expr._backend(), self.args._backend())
+        return "%s[%s]" % (self.func_expr._backend(), self.args._backend())
 
 @extend(node.comment_stmt)
 def _backend(self,level=0):
@@ -221,7 +221,7 @@ def _backend(self,level=0):
         try:
             splits[0]=str(int(splits[0])-1)
         except:
-            splits[0]==splits[0]+'-1'
+            splits[0]==splits[0] #+'-1'
         s='np.arange('+','.join(splits)+')'
         fmt = "for %s in %s:%s"
         return fmt % (self.ident._backend(), s, self.stmt_list._backend(level+1))
@@ -240,43 +240,54 @@ def %s(%s): """ % (self.ident._backend(), self.args._backend())
 def _backend(self,level=0):
     F_REPLACE={
             # Numpy
-            'abs':      ('np.abs('          , ')'     )  , 
-            'all':      ('np.all('          , ')'     )  , 
-            'any':      ('np.any('          , ')'     )  , 
-            'ceil'    : ('np.ceil('      , ')'     )  , 
-            'dot':      ('np.dot('           , ')'     )  , 
-            'eye':      ('np.eye('          , ')'     )  , 
-            'exp':      ('np.exp('           , ')'     )  , 
-            'floor'   : ('int(np.floor('   , '))'     ) , 
-            'fft'     : ('np.fft.rfft('   , ')'     ) ,  # dangerous
-            'round'   : ('np.round('     , ')'     )  , 
-            'fix'     : ('np.rint('      , ')'     )  , 
-            'linspace': ('np.linspace('     , ')'     )  , 
-            'mod':      ('np.mod('          , ')'     )  , 
-            'min':      ('np.amin('         , ')'     )  , 
-            'max':      ('np.amax('         , ')'     )  , 
-            'ndims':    ('np.asarray('      , ').ndim')  , 
-            'numel':    ('np.asarray('      , ').size')  , 
-            'rand':     ('np.random.rand('  , ')'     )  , 
-            'repmat':   ('np.matlib.repmat('          , ')'     )  , 
-            'sqrt':     ('np.sqrt('         , ')'     )  , 
-            'log':      ('np.log('           , ')'     )  , 
-            'multiply': ('np.multiply(' , ')'     )  , 
-            'rand':     ('np.random.rand(' , ')'     )  , 
-            'randn':    ('np.random.randn(' , ')'     )  , 
+            'abs':      ('np.abs('             , ')'     )  , 
+            'all':      ('np.all('             , ')'     )  , 
+            'any':      ('np.any('             , ')'     )  , 
+            'ceil'    : ('np.ceil('            , ')'     )  , 
+            'dot':      ('np.dot('             , ')'     )  , 
+            'diff'    : ('np.diff('            , ')'   )    , 
+            'prod'    : ('np.prod('            , ')'   )    , 
+            'eye':      ('np.eye('             , ')'     )  , 
+            'exp':      ('np.exp('             , ')'     )  , 
+            'floor'   : ('int(np.floor('       , '))'     ) , 
+            'fft'     : ('np.fft.rfft('        , ')'     )  , # dangerous
+            'round'   : ('np.round('           , ')'     )  , 
+            'fix'     : ('np.rint('            , ')'     )  , 
+            'linspace': ('np.linspace('        , ')'     )  , 
+            'meshgrid': ('np.meshgrid('        , ')'     )  , 
+            'mod':      ('np.mod('             , ')'     )  , 
+            'min':      ('np.amin('            , ')'     )  , 
+            'max':      ('np.amax('            , ')'     )  , 
+            'ndims':    ('np.asarray('         , ').ndim')  , 
+            'numel':    ('np.asarray('         , ').size')  , 
+            'rand':     ('np.random.rand('     , ')'     )  , 
+            'repmat':   ('np.matlib.repmat('   , ')'     )  , 
+            'sqrt':     ('np.sqrt('            , ')'     )  , 
+            'squeeze':  ('np.squeeze('         , ')'     )  , 
+            'log':      ('np.log('             , ')'     )  , 
+            'multiply': ('np.multiply('        , ')'     )  , 
+            'rand':     ('np.random.rand('     , ')'     )  , 
+            'randn':    ('np.random.randn('    , ')'     )  , 
             # Scipy
-            'gamma':   ('scipy.special.gamma('      , ')'     )  , 
-            'load':    ('scipy.io.loadmat('      , ')'     )  , 
+            'gamma':   ('scipy.special.gamma(' , ')'     )  , 
+            'load':    ('scipy.io.loadmat('    , ')'     )  , 
             # Plot
-            'figure':   ('plt.figure('      , ')'     )  , 
-            'plot':     ('plt.plot('      , ')'     )  , 
-            'xlim':     ('plt.xlim('      , ')'     )  , 
-            'ylim':     ('plt.ylim('      , ')'     )  , 
-            'zlim':     ('plt.zlim('      , ')'     )  , 
-            'legend':   ('plt.legend('      , ')'     )  , 
+            'axis':     ('plt.axis('           , ')'     )  , 
+            'contour':  ('plt.contour('        , ')'     )  , 
+            'figure':   ('plt.figure('         , ')'     )  , 
+            'plot':     ('plt.plot('           , ')'     )  , 
+            'quiver':   ('plt.quiver('         , ')'     )  , 
+            'title':    ('plt.title('          , ')'     )  , 
+            'legend':   ('plt.legend('         , ')'     )  , 
+            'xlim':     ('plt.xlim('           , ')'     )  , 
+            'ylim':     ('plt.ylim('           , ')'     )  , 
+            'zlim':     ('plt.zlim('           , ')'     )  , 
+            'xlabel':   ('plt.xlabel('         , ')'     )  , 
+            'ylabel':   ('plt.ylabel('         , ')'     )  , 
+            'zlabel':   ('plt.zlabel('         , ')'     )  , 
             # builtins
             'disp':    ('print('               , ')'     )  , 
-            'fopen':   ('open('               , ')'     )  , 
+            'fopen':   ('open('                , ')'     )  , 
             'sort':    ('__builtint__.sorted(' , ')'     )  , 
             'error':   ('raise Exception('     , ')'     )  , 
             'warning':   ('warnings.warn('     , ')'     )  , 
@@ -286,8 +297,13 @@ def _backend(self,level=0):
             'randn'   :'np.random.randn()',
             }
     F_1ARG ={
+            'acos'     : 'np.arccos(%s)',
+            'asin'     : 'np.arcsin(%s)',
+            'atan'     : 'np.arctan(%s)',
+            'atan2'    : 'np.arctan2(%s)',
             'cos'      : 'np.cos(%s)',
             'cosd'     : 'np.cos(np.pi/180*%s)',
+            'cosh'     : 'np.cosh(%s)',
             'delete'   : 'os.delete(%s)',
             'ftell'    : '%s.tell()',
             'isempty'  : 'len(%s)==0',
@@ -304,7 +320,9 @@ def _backend(self,level=0):
             'size'    : '%s.shape',
             'sin'     : 'np.sin(%s)',
             'sind'    : 'np.sin(np.pi/180*%s)',
-            'tan'     : 'np.tan(%s)'
+            'sinh'    : 'np.sinh(%s)',
+            'tan'     : 'np.tan(%s)',
+            'tanh'    : 'np.tanh(%s)'
             }
     F_2ARGS={
             'isa'     :'True',
