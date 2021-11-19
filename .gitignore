@@ -1,3 +1,6 @@
 _ressources
 __pycache__
 *.pyc
+_*
+!__init__.py
+*.egg-info
