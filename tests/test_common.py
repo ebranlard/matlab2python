@@ -5,8 +5,6 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from matlabparser import *
-from matlabparser.parser import TestParser
-from matlabparser.parsing_tools import TestParsingTools
 from matlabparser.parser import matlablines2python
 
 # --------------------------------------------------------------------------------}

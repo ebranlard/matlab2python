@@ -20,16 +20,16 @@ class options:
         self.output=output
 
 def convert(mfile):
-    opts = options(mfile.replace('.m','.py'))
-    #print('>>>>>>')
-    #print('>>>>>> Converting:',mfile)
+    output = os.path.join(os.path.dirname(mfile),'_'+os.path.basename(mfile).replace('.m','.py'))
+    opts = options(output)
+    #print('>>>>>> Converting:',mfile, opts)
     #     opts.smop=True
     mparser.matlab2python(mfile,opts)
 
 def compare_to_ref(mfile):
-    opts = options(mfile.replace('.m','.py'))
-    ref_output =mfile.replace('.m','_ref.py')
-    #print('>>>>>> Converting:',mfile)
+    output = os.path.join(os.path.dirname(mfile),'_'+os.path.basename(mfile).replace('.m','.py'))
+    opts = options(output)
+    #print('>>>>>> Converting:',mfile, opts)
     mparser.matlab2python(mfile,opts)
     #print('>>>>>>')
 
@@ -37,8 +37,8 @@ class TestMatlab2Python(unittest.TestCase):
 
 
     def test_spectrum(self):
-        convert('_tests/files/run_all.m')
-        compare_to_ref('_tests/files/fSpectrum.m')
+        convert('tests/files/run_all.m')
+        compare_to_ref('tests/files/fSpectrum.m')
 
 
 # --------------------------------------------------------------------------------}
@@ -47,8 +47,8 @@ class TestMatlab2Python(unittest.TestCase):
 
 class TestZAllConverted(unittest.TestCase):
     def test_Zspectrum(self):
-        import _tests.files
-        from _tests.files.fSpectrum import fSpectrum 
+        import tests.files
+        from tests.files._fSpectrum import fSpectrum 
         dt = 0.1
         t = np.arange(0,1+dt,dt)
         y = np.sin(t)
