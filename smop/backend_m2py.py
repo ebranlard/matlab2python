@@ -268,6 +268,7 @@ def _backend(self,level=0):
             'multiply': ('np.multiply('        , ')'     )  , 
             'rand':     ('np.random.rand('     , ')'     )  , 
             'randn':    ('np.random.randn('    , ')'     )  , 
+            'sign':     ('np.sign('            , ')'     )  , 
             # Scipy
             'gamma':   ('scipy.special.gamma(' , ')'     )  , 
             'load':    ('scipy.io.loadmat('    , ')'     )  , 

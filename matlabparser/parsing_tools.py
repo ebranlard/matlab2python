@@ -144,6 +144,8 @@ def extract_quotedstring(s):
     elif s=='""':
         return ''
     s=s.replace("""''""",'XX') # first replace double quotes
+    if s.find('XX')==0:
+        return ''
 
     bInSingle = s[0]=='\''
     bInDouble = s[0]=='"'
