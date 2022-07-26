@@ -9,7 +9,7 @@ properties(SetAccess = private, Hidden = true)
 end
 methods
     function o=MyClass(varargin)
-        o.pro_pub=1
+        o.prop_pub= 3*pi+2
     end
     function read(o,value)
         o.check_extension();

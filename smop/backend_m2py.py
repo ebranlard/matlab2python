@@ -129,6 +129,10 @@ def _backend(self,level=0):
 
 @extend(node.expr)
 def _backend(self,level=0):
+    """ 
+    Expressions can contain operators and arguments:
+       For instance: `3*x` , operator:`*`, two arguments `3` and `x`
+    """
     if self.op in ("!","~"): 
        return "not %s " % self.args[0]._backend()
 
@@ -451,8 +455,12 @@ def _backend(self,level=0):
 
 @extend(node.ident)
 def _backend(self,level=0):
+    """ 
+    node.ident: for simple variables `x` or attributes `.x`
+    """
 
     NODE_RENAME={
+            'pi':'np.pi',
             'true':'True',
             'false':'False',
             'nargin':'len(varargin)',
@@ -487,6 +495,9 @@ def _backend(self,level=0):
 
 @extend(node.let)
 def _backend(self,level=0):
+    """ 
+    node.let: for equalities: LHS = RHS
+    """
     if not options.no_numbers:
         t = "\n# %s:%s" % (options.filename,
                              self.lineno)
