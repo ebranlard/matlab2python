@@ -15,5 +15,8 @@ methods
         o.check_extension();
         o.prop_pub=value;
     end
+    function check_extension(o)
+        o.prop_priv=3;
+    end
 end % methods
 end % class
