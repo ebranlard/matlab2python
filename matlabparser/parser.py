@@ -416,6 +416,13 @@ class MatlabFile:
                                 if len(pylc.split("@")) == 2:
                                     # Should be a static method
                                     method_name, rest = pylc.split("@")
+                                    # Might have a return value though
+                                    if method_name.find("=") >= 0:
+                                        lhs, method_name = method_name.split("=")
+                                        lhs = lhs.strip(" ")
+                                        method_name = method_name.strip(" ")
+                                    else:
+                                        lhs = None
                                     def split_first(string, token):
                                         split = string.split(token)
                                         if len(split) > 2:
@@ -423,6 +430,8 @@ class MatlabFile:
                                         return split
                                     class_name, params = split_first(rest, "(")
                                     pylc = class_name + "." + method_name + "(" + params
+                                    if lhs is not None:
+                                        pylc = lhs + " = " + pylc
                                 
                                 else:
                                     raise Exception("Can't parse '@' statement: " + lc[0])

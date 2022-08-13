@@ -1,4 +1,4 @@
-classdef MyClass < handle;
+classdef TestClass < handle;
 % Documentation: 
 properties
     % Public
@@ -8,7 +8,7 @@ properties(SetAccess = private, Hidden = true)
     prop_priv=-1;
 end
 methods
-    function o=MyClass(varargin)
+    function o=TestClass(varargin)
         o.prop_pub= 3*pi+2
     end
     function read(o,value)
