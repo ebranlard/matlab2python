@@ -389,14 +389,62 @@ class MatlabFile:
                                 lMeth.append((args_out[0]+'.'+lcp[0].strip(),lcp[1]))
                                 
                     else:
-                        if lc[0].find('@')>=0:
-                            lMeth.append(('','% TODO TODO TODO MATLAB2PYTHON: '+lc[0]+lc[1]))
+                        if lc[0].find('@') >= 0:
+                            if lc[0].find("this@") >= 0:
+                                # Call to a super constructor
+                                super_call = lc[0].split("@")[-1].strip(".")
+                                super_split = super_call.split("(")
+                                pylc = super_split[0]+".__init__(self,"+super_split[1]
+                            else:
+                                pylc = lc[0]
+                                
+                            if pylc.find("@this") >= 0:
+                                # This is just a property, just remove the @
+                                pylc = pylc.replace("@this", "self")
+                                
+                            if pylc.find(" @") >= 0 or pylc.find(",@") >= 0:
+                                # This is also a static property
+                                for (f, r) in [(" @", " "), (",@", ", ")]:
+                                    if pylc.find(f) >= 0 :
+                                        pylc = pylc.replace(f, r)
+                                        
+                            if pylc.split("@")[0] == "":
+                                # Last case of static property
+                                pylc = pylc[1:]
+                                
+                            if pylc.find("@") >= 0:
+                                if len(pylc.split("@")) == 2:
+                                    # Should be a static method
+                                    method_name, rest = pylc.split("@")
+                                    # Might have a return value though
+                                    if method_name.find("=") >= 0:
+                                        lhs, method_name = method_name.split("=")
+                                        lhs = lhs.strip(" ")
+                                        method_name = method_name.strip(" ")
+                                    else:
+                                        lhs = None
+                                    def split_first(string, token):
+                                        split = string.split(token)
+                                        if len(split) > 2:
+                                            split = [split[0], string[len(split[0])+1:-1]]
+                                        return split
+                                    class_name, params = split_first(rest, "(")
+                                    pylc = class_name + "." + method_name + "(" + params
+                                    if lhs is not None:
+                                        pylc = lhs + " = " + pylc
+                                
+                                else:
+                                    raise Exception("Can't parse '@' statement: " + lc[0])
+                                
+                            lMeth.append(("", pylc))
+                                
                         else:
                             lMeth.append(lc)
                 if not bConstructorFound:
                     raise Exception('Constructor not found in class')
 
                 stmp='\n'.join([lc[0]+lc[1] for lc in lMeth])
+                stmp=stmp.replace("this", "self") # TODO: Shouldn't really happen in comments. 
                 #print(stmp)
                 stmp=parse_matlab_lines(stmp,backend)
                 stmp=stmp.replace('\n','\n    ')
