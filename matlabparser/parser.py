@@ -181,7 +181,7 @@ class MatlabFile:
         self.ArgsOut='' #
 
         if filename is not None:
-            with open(filename,'r') as f:
+            with open(filename, 'r', errors='ignore') as f:
                 self.raw_lines=f.readlines()
         elif lines is not None:
             if isinstance(lines,list):
