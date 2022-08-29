@@ -1,8 +1,5 @@
 # SMOP -- Simple Matlab/Octave to Python compiler
 # Copyright 2011-2016 Victor Leikehman
-
-from __future__ import print_function
-
 import py_compile
 import tempfile
 import fnmatch

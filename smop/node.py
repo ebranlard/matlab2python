@@ -1,7 +1,6 @@
 # SMOP compiler -- Simple Matlab/Octave to Python compiler
 # Copyright 2011-2013 Victor Leikehman
  
-from __future__ import print_function
 from collections import namedtuple
 import copy,sys,inspect
 

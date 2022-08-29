@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from __future__ import absolute_import
 import sys
 import argparse
 from matlabparser import parser as mparser

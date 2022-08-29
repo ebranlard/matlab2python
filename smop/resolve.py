@@ -18,7 +18,6 @@ instances, which possibly define the variable.
 It is used in if_stmt, for_stmt, and while_stmt.
 """
 
-from __future__ import print_function
 import copy
 import networkx as nx
 

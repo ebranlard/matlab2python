@@ -1,7 +1,6 @@
 numpy  
 ply
 networkx
-future
 matplotlib 
 pytest
 scipy
