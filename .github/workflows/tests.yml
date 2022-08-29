@@ -8,11 +8,48 @@ on:
     types: [opened, synchronize] #labeled, assigned]
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
+  test:
     strategy:
       matrix:
-        python-version: [3.7, 3.8] 
+        include:
+          - os: ubuntu-18.04
+            python-version: 3.7
+            python: xvfb-run python3
+            pip_arg: ""
+          - os: ubuntu-18.04
+            python-version: 3.8
+            python: xvfb-run python3
+            pip_arg: ""
+          - os: ubuntu-18.04
+            python-version: 3.9
+            python: xvfb-run python3
+            pip_arg: ""
+          - os: macos-10.15
+            python-version: 3.7
+            python: python3
+            pip_arg: ""
+          - os: macos-10.15
+            python-version: 3.8
+            python: python3
+            pip_arg: ""
+          - os: macos-10.15
+            python-version: 3.9
+            python: python3
+            pip_arg: ""
+          - os: windows-2019
+            python-version: 3.7
+            python: python
+            pip_arg: --user
+          - os: windows-2019
+            python-version: 3.8
+            python: python
+            pip_arg: --user
+          - os: windows-2019
+            python-version: 3.9
+            python: python
+            pip_arg: --user
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@main
@@ -25,8 +62,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          python -m pip install -r requirements.txt
       - name: Test with pytest
         run: |
           pip install -e .
           python -m unittest discover -v
+      - name: Make run
+        run: |
+          make singletest

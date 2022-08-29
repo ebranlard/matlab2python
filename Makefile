@@ -9,8 +9,10 @@ else
     detected_OS := $(patsubst MINGW%,MSYS,$(detected_OS))
 endif
 
-all:
-	python $(MAIN) tests/files/test_class1.m 
+all: singletest
+
+singletest:
+	python $(MAIN) tests/files/TestClass.m
 
 install:
 	python setup.py install
