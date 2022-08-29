@@ -37,6 +37,9 @@ def convert(mfile, prefix='_'):
     #print('>>>>>> Converting:',mfile, opts)
     #     opts.smop=True
     mparser.matlab2python(mfile,opts)
+    # Sleep to allow for IO time
+    import time
+    time.sleep(0.3)
 
     return pyFilename
 
