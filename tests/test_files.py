@@ -33,7 +33,7 @@ def convert(mfile, prefix='_'):
     The underscore ensures that the file is ignored by git.
     """
     pyFilename = os.path.join(os.path.dirname(mfile),prefix+os.path.basename(mfile).replace('.m','.py'))
-    opts = options(pyFilename)
+    opts = options(output=pyFilename)
     #print('>>>>>> Converting:',mfile, opts)
     #     opts.smop=True
     mparser.matlab2python(mfile,opts)
@@ -73,6 +73,7 @@ class TestMatlab2Python(unittest.TestCase):
             # Convert base class to python
             pyFilename_parent = convert('TestClass.m', prefix="")
 
+
             # Open the file generated and test the class
             from TestClass import TestClass
 
@@ -87,7 +88,7 @@ class TestMatlab2Python(unittest.TestCase):
             pyFilename_child = convert('ChildClass.m', prefix="")
 
             # Test it
-            from ChildClass import ChildClass
+            from tests.files.ChildClass import ChildClass
 
             child_obj = ChildClass()
             
