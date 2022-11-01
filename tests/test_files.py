@@ -11,15 +11,6 @@ from matlabparser import parser as mparser
 # --- Convert matlab files to python files
 # --------------------------------------------------------------------------------{
 
-class options:
-    def __init__(self,output=None):
-        self.numbers=False
-        self.no_comments=False
-        self.no_resolve=False
-        self.smop=False
-        self.output=output
-
-
 def remove(pyFile):
     try:
         os.remove(pyFile)
@@ -33,10 +24,8 @@ def convert(mfile, prefix='_'):
     The underscore ensures that the file is ignored by git.
     """
     pyFilename = os.path.join(os.path.dirname(mfile),prefix+os.path.basename(mfile).replace('.m','.py'))
-    opts = options(output=pyFilename)
-    #print('>>>>>> Converting:',mfile, opts)
-    #     opts.smop=True
-    mparser.matlab2python(mfile,opts)
+    #print('>>>>>> Converting:',mfile, pyFilename)
+    mparser.matlab2python(mfile, output=pyFilename)
     # Sleep to allow for IO time
     import time
     time.sleep(0.3)

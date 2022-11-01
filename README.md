@@ -24,16 +24,41 @@ The code is written in python, you can access it as follows:
 ```bash
 git clone https://github.com/ebranlard/matlab2python
 cd matlab2python
-python -m pip install --user -r requirements.txt
+# install dependencies
+python -m pip install --user -r requirements.txt 
+# make the packages available from any directory
+python -m pip install -e .  
+#Optional: run tests
+pytest
+#Optional: try it directly
+python matlab2python.py tests/files/fSpectrum.m -o fSpectrum.py
 ```
 
 ## Usage
+
+### Main script
 The main script at the root of the repository is executable and has a couple of command line flags (some of them taken directly from SMOP). 
 To convert the file `file.m` to `file.py`, simply type:
 ```bash
-python matlab2python.py file.m -o file.py
+python path/to/matlab2python.py file.m -o file.py
 ```
+where `path/to` is the path to the script `matlab2python.py`
+
+
+### From python
 The python package can also be used directly to perform conversion of files or lines of code.
+```python
+import matlabparser as mpars
+# --- Convert a matlab file 
+pylines = mpars.matlab2python('path/to/file.m', output='file.py')
+
+# --- Convert matlab lines (string or list of strings)
+mlines="""# a comment
+x = linspace(0,1,100);
+y = cos(x) + x**2;
+"""
+pylines = mpars.matlablines2python(mlines, output='stdout')
+```
 
 
 ## Should I use this

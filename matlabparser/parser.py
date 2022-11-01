@@ -468,38 +468,63 @@ def parse(filename):
     MF=MatlabFile(filename=filename)
     #print(lines)
 
-def matlab2python(filename,opts=None):
-    # ---Passing options to smop module
+def setSMOPOptions(linenumbers=False, no_comments=False, no_resolve=False, filename='', **kwargs):
+    """ Set options of SMOP module
+    NOTE: these are global...
+    """
     #options.debug=opts.debug
-    smop.options.filename=filename
-    smop.options.no_numbers=not opts.numbers
-    smop.options.no_comments=opts.no_comments
-    smop.options.no_resolve=opts.no_resolve
+    smop.options.filename    = filename
+    smop.options.no_numbers  = not linenumbers # show a comment with original line number
+    smop.options.no_comments = no_comments
+    smop.options.no_resolve  = no_resolve
+
+def matlab2python(filename, output=None, backend='m2py', **kwargs):
+    """ 
+    Convert a matlab file (defined by `filename`) to python. 
+    The result is returned to stdout, or a file if `output` is provided.
+
+    INPUTS:
+     - filename: matlab filename, string
+     - output: python filename to be written. If `output`='stdout' the outputs are printed to screen.
+     - backend: 'm2py' or 'smop': which backend to use for the conversion. 
+                'm2py' relies on smop, but performs additional conversions
+     - kwargs: Dictionary of SMOP options
+         - no_comments: if true, strip out comment lines from the output
+         - linenumbers: if true, show a comment with original line number
+         - no_resolve:  omit name resolution 
+    """
+    # Passing options to smop module
+    setSMOPOptions(filename=output, **kwargs)
     # Looping through files if a list provided
     if isinstance(filename,list):
         for f in filename:
-            matlab2python(f,opts)
+            matlab2python(f, output=output, backend=backend, **kwargs)
         return
     if not os.path.exists(filename):
         raise Exception('FileNotFound:'+filename)
-    MF=MatlabFile(filename=filename)
-
-    if opts.smop:
-        PY=MF.toPython(backend='smop')
-    else:
-        PY=MF.toPython(backend='m2py')
-    if opts.output is None:
+    # Create an instance of MatlabFile and convert to python
+    MF = MatlabFile(filename = filename)
+    PY = MF.toPython(backend = backend)
+    # Return result to user, stdout, or file
+    if output is None:
+        pass
+    elif output == 'stdout':
         print(PY)
     else:
-        with open(opts.output,'w') as f:
+        with open(output, 'w') as f:
             f.write(PY)
+    return PY
 
-#     if opts.output:
-    #print(lines)
-
-def matlablines2python(lines):
-    MF=MatlabFile(lines=lines)
-    return MF.toPython()
+def matlablines2python(lines, output=None, backend='m2py', **kwargs):
+    # Passing options to smop module
+    setSMOPOptions(**kwargs)
+    # Create an instance of MatlabFile and convert to python
+    MF = MatlabFile(lines = lines)
+    PY = MF.toPython(backend=backend)
+    # Return result to user or stdout
+    if output == 'stdout':
+        print(PY)
+    return PY
 
     
 

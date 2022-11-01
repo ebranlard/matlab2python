@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 import sys
 import argparse
-from matlabparser import parser as mparser
-
-from smop.main import parse_matlab_lines
+import matlabparser as mpars
 
 def main(argv):
 
@@ -27,22 +25,34 @@ def main(argv):
     #parser.add_argument("-V", '--version', action='version', version=__version__) 
     #parser.add_argument("-v", "--verbose", action="store_true")
     #parser.add_argument("-Z", "--archive", metavar="ARCHIVE.tar", help=""" Read ".m" files from the archive; ignore other files.  Accepted format: "tar".  Accepted compression: "gzip", "bz2".  """)
-# 
+
     parser.add_argument("filelist", nargs="+", metavar="FILE.m", type=str)
 
     opts = parser.parse_args(argv)
-    #Lines="""
-    #function [j] = f(x)
-    #x=3 % hello
-    #% continuing
-    #y.caca=2
-    #j=4
-    #"""
-    #print(parse_matlab_lines(Lines))
-#     pass
-    mparser.matlab2python(opts.filelist,opts)
+    # Usign a dictionray instead of a class for options
+    opts_dict = opts.__dict__
+    if opts.smop:
+        opts_dict['backend'] = 'smop'
+    else:
+        opts_dict['backend'] = 'm2py'
+    if opts.output is None:
+        opts_dict['output'] = 'stdout'
+
+    # Perform conversion
+    mpars.matlab2python(opts.filelist, **opts_dict)
 
 
 
 if __name__ == '__main__':
     main(sys.argv[1:])
+
+    #from smop.main import parse_matlab_lines
+    #Lines="""
+    #function [j] = f(x)
+    #x=3 % hello
+    #% continuing
+    #y.misc=2
+    #j=4
+    #"""
+    #print(parse_matlab_lines(Lines))
+    #print(mpars.matlablines2python(Lines))
